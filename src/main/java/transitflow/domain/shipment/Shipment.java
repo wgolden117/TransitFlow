@@ -9,8 +9,9 @@ import java.util.UUID;
 
 /**
  * Represents a shipment moving through a multi-segment route.
- * The shipment advances through segments over simulated time
- * and maintains state about its progress and status.
+ *
+ * The shipment tracks elapsed time within the current segment
+ * and only advances when sufficient time has passed.
  */
 public class Shipment {
 
@@ -19,44 +20,37 @@ public class Shipment {
     private final Route route;
 
     private int currentSegmentIndex;
-    private Duration remainingSegmentTime;
-
-    private Instant predictedArrivalTime;
+    private Duration elapsedInCurrentSegment = Duration.ZERO;
     private ShipmentStatus status;
 
     public Shipment(String trackingNumber, Route route) {
         this.id = UUID.randomUUID();
         this.trackingNumber = trackingNumber;
         this.route = route;
-
         this.currentSegmentIndex = 0;
-        this.remainingSegmentTime = route.getSegments()
-                .get(0)
-                .getBaseTransitTime();
-
         this.status = ShipmentStatus.IN_TRANSIT;
     }
 
-    /**
-     * Advances this shipment by the given simulated duration.
-     * Progresses through one or more segments if time allows.
-     */
     public void advance(Duration tick) {
-        if (status != ShipmentStatus.IN_TRANSIT) {
+        if (!hasMoreSegments()) {
             return;
         }
 
         Duration remainingTick = tick;
 
-        while (remainingTick.isPositive() && hasMoreSegments()) {
+        while (hasMoreSegments() && remainingTick.compareTo(Duration.ZERO) > 0) {
+            Segment current = getCurrentSegment();
+            Duration remainingSegmentTime =
+                    current.getBaseTransitTime().minus(elapsedInCurrentSegment);
 
             if (remainingTick.compareTo(remainingSegmentTime) >= 0) {
-                // Finish current segment
+                // Finish segment
                 remainingTick = remainingTick.minus(remainingSegmentTime);
-                advanceToNextSegment();
+                elapsedInCurrentSegment = Duration.ZERO;
+                currentSegmentIndex++;
             } else {
-                // Partial progress on current segment
-                remainingSegmentTime = remainingSegmentTime.minus(remainingTick);
+                // Partial progress
+                elapsedInCurrentSegment = elapsedInCurrentSegment.plus(remainingTick);
                 remainingTick = Duration.ZERO;
             }
         }
@@ -66,55 +60,20 @@ public class Shipment {
         }
     }
 
-    private void advanceToNextSegment() {
-        currentSegmentIndex++;
-
-        if (hasMoreSegments()) {
-            Segment nextSegment = route.getSegments().get(currentSegmentIndex);
-            remainingSegmentTime = nextSegment.getBaseTransitTime();
-        } else {
-            remainingSegmentTime = Duration.ZERO;
-        }
-    }
-
     public boolean hasMoreSegments() {
         return currentSegmentIndex < route.segmentCount();
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getTrackingNumber() {
-        return trackingNumber;
-    }
-
-    public Route getRoute() {
-        return route;
+    public Segment getCurrentSegment() {
+        return route.getSegments().get(currentSegmentIndex);
     }
 
     public int getCurrentSegmentIndex() {
         return currentSegmentIndex;
     }
 
-    public Duration getRemainingSegmentTime() {
-        return remainingSegmentTime;
-    }
-
     public ShipmentStatus getStatus() {
         return status;
-    }
-
-    public Instant getPredictedArrivalTime() {
-        return predictedArrivalTime;
-    }
-
-    public void setPredictedArrivalTime(Instant predictedArrivalTime) {
-        this.predictedArrivalTime = predictedArrivalTime;
-    }
-
-    public void markDelivered() {
-        this.status = ShipmentStatus.DELIVERED;
     }
 }
 
