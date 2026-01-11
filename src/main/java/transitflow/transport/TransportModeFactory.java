@@ -5,6 +5,12 @@ import transitflow.transport.rail.RailTransport;
 import transitflow.transport.sea.SeaTransport;
 import transitflow.transport.truck.TruckTransport;
 
+/**
+ * Factory for creating transport mode implementations.
+ *
+ * Centralizes transport mode instantiation to avoid coupling
+ * domain logic to concrete transport implementations.
+ */
 public class TransportModeFactory {
 
     public static TransportMode create(String mode) {

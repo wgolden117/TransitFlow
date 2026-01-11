@@ -5,6 +5,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+/**
+ * Encapsulates business calendar rules such as business days,
+ * weekend handling, and time zone conversion.
+ *
+ * This class provides reusable date and time calculations used
+ * by delivery policies to ensure consistent delivery date logic
+ * across terminals.
+ */
 public class BusinessCalendar {
 
     private final ZoneId zoneId;

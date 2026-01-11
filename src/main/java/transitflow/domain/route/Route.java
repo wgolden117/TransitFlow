@@ -3,6 +3,13 @@ package transitflow.domain.route;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Represents an ordered sequence of transportation segments that define
+ * the full journey of a shipment.
+ *
+ * Routes may span multiple transportation modes and terminals,
+ * enabling modeling of intermodal freight movement.
+ */
 public class Route {
 
     private final UUID id;

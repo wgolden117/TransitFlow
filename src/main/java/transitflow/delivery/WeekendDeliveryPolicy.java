@@ -5,6 +5,15 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+/**
+ * Delivery policy that allows weekend deliveries.
+ *
+ * If a shipment arrives before the inbound cut time, it is eligible
+ * for same-day delivery regardless of the day of week. Otherwise,
+ * delivery occurs on the following day.
+ *
+ * This policy is intended for terminals that operate seven days a week.
+ */
 public class WeekendDeliveryPolicy implements DeliveryPolicy {
 
     private final BusinessCalendar calendar;

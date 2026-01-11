@@ -4,6 +4,11 @@ import transitflow.transport.TransportMode;
 
 import java.time.Duration;
 
+/**
+ * Transport mode implementation representing rail transportation.
+ *
+ * Provides baseline transit behavior for rail-based route segments.
+ */
 public class RailTransport implements TransportMode {
 
     @Override

@@ -2,10 +2,16 @@ package transitflow.domain.shipment;
 
 import transitflow.domain.route.Route;
 import transitflow.domain.route.Segment;
-
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Represents a unit of freight moving through the transportation network.
+ *
+ * A shipment is associated with a route and maintains its current position
+ * within that route, along with status information used by simulation
+ * and prediction engines.
+ */
 public class Shipment {
 
     private final UUID id;

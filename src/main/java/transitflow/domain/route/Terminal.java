@@ -4,6 +4,14 @@ import transitflow.delivery.DeliveryPolicy;
 
 import java.util.UUID;
 
+/**
+ * Represents a physical freight terminal or hub.
+ *
+ * Each terminal is associated with a delivery policy that governs
+ * how customer delivery dates are calculated based on arrival times.
+ *
+ * Terminals act as both route endpoints and intermodal transfer points.
+ */
 public class Terminal {
 
     private final UUID id;

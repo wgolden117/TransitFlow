@@ -5,6 +5,14 @@ import transitflow.transport.TransportMode;
 import java.time.Duration;
 import java.util.UUID;
 
+/**
+ * Represents a single transportation leg between two terminals.
+ *
+ * Each segment is associated with a transport mode (truck, rail, air, sea),
+ * which determines baseline transit characteristics such as expected duration.
+ *
+ * Segments are composed into routes to model multi-leg, multi-modal shipments.
+ */
 public class Segment {
 
     private final UUID id;

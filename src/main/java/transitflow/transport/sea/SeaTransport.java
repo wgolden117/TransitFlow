@@ -4,6 +4,11 @@ import transitflow.transport.TransportMode;
 
 import java.time.Duration;
 
+/**
+ * Transport mode implementation representing sea transportation.
+ *
+ * Provides baseline transit behavior for sea-based route segments.
+ */
 public class SeaTransport implements TransportMode {
 
     @Override

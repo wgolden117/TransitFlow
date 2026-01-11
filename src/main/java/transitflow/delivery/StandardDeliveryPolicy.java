@@ -5,6 +5,16 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+/**
+ * Standard delivery policy that enforces weekday-only delivery
+ * and an inbound cut time.
+ *
+ * If a shipment arrives before the inbound cut time on a business day,
+ * it is eligible for same-day delivery. Otherwise, delivery occurs on
+ * the next business day at the cut time.
+ *
+ * This policy represents the default behavior for most freight terminals.
+ */
 public class StandardDeliveryPolicy implements DeliveryPolicy {
 
     private final BusinessCalendar calendar;
