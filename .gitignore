@@ -8,6 +8,9 @@ out/
 *.iws
 *.ipr
 
+# Environment variables
+.env
+
 ### Eclipse ###
 .apt_generated
 .classpath

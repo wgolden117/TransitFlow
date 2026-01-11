@@ -1,4 +1,4 @@
 package main.java.transitflow.integration.weather;
 
-public interface WeatherClient {
+public class WeatherSeverity {
 }

@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: transitflow
+
+server:
+  port: 8080
+
+integration:
+  weather:
+    api-key: ${WEATHER_API_KEY}
+    base-url: ${WEATHER_API_BASE_URL}
+
+prediction:
+  horizon-hours: 72
+
+simulation:
+  tick-minutes: 10
