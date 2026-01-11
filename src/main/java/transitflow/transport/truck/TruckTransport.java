@@ -1,4 +1,18 @@
-package main.java.transitflow.transport.truck;
+package transitflow.transport.truck;
 
-public class TruckTransport {
+import transitflow.transport.TransportMode;
+
+import java.time.Duration;
+
+public class TruckTransport implements TransportMode {
+
+    @Override
+    public String getName() {
+        return "TRUCK";
+    }
+
+    @Override
+    public Duration calculateBaseTransitTime() {
+        return Duration.ofHours(6); // placeholder
+    }
 }
