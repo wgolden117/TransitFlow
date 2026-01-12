@@ -60,10 +60,32 @@ It is intended to run as a backend service that feeds predictive ETAs into:
 
 ---
 
-## Status
+## Current Implementation Status
 
-This project is a design-focused, production-aligned prototype intended to demonstrate system architecture, domain modeling, and predictive logic rather than full operational scale.
+TransitFlow currently implements the core domain model and simulation foundation required for accurate freight ETA prediction.
 
+Implemented features include:
+- Domain-driven modeling of shipments, routes, segments, terminals, and transport modes
+- Multi-leg, multi-modal shipment routing (truck, rail, air, sea)
+- Deterministic, time-based simulation engine
+- Segment-level transit time enforcement (no premature advancement)
+- Terminal-specific delivery policies with inbound cut times and business calendars
+- Clean separation between operational state and delivery estimation logic
+- Comprehensive unit tests validating simulation time progression behavior
+
+At this stage, TransitFlow represents a stable and test-backed operational simulation core.
+
+## Planned Next Steps
+
+Upcoming work will focus on expanding predictive capabilities and operational realism, including:
+- Delay event modeling (weather, congestion, intermodal dwell)
+- Read-only predictive forecasting engine (state cloning)
+- ETA confidence and risk scoring
+- External signal integration (stubbed → real APIs)
+- REST API endpoints for shipment tracking and ETA retrieval
+- Metrics and observability enhancements
+
+Development is intentionally iterative, with each feature implemented on isolated branches and merged only after validation.
 ---
 
 ## Documentation
