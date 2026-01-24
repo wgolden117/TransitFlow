@@ -31,6 +31,25 @@ public class Shipment {
         this.status = ShipmentStatus.IN_TRANSIT;
     }
 
+    /**
+     * Copy constructor used for prediction snapshots.
+     */
+    public Shipment(Shipment original) {
+        this.id = original.id; // safe: identity preserved across snapshots
+        this.trackingNumber = original.trackingNumber;
+        this.route = original.route; // safe: Route is immutable
+        this.currentSegmentIndex = original.currentSegmentIndex;
+        this.elapsedInCurrentSegment = original.elapsedInCurrentSegment;
+        this.status = original.status;
+    }
+
+    /**
+     * Creates a deep copy of this shipment for prediction use.
+     */
+    public Shipment copy() {
+        return new Shipment(this);
+    }
+
     public void advance(Duration tick) {
         if (!hasMoreSegments()) {
             return;
