@@ -6,6 +6,7 @@ import transitflow.domain.route.Segment;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import transitflow.domain.route.Terminal;
 
 /**
  * Represents a shipment moving through a multi-segment route.
@@ -93,6 +94,10 @@ public class Shipment {
 
     public ShipmentStatus getStatus() {
         return status;
+    }
+
+    public Terminal getFinalDestination() {
+        return route.getDestination();
     }
 }
 
