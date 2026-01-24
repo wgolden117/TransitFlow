@@ -1,18 +1,18 @@
 package transitflow.simulation;
 
+import transitflow.domain.delay.DelayEvent;
 import transitflow.domain.shipment.Shipment;
 
 import java.time.Duration;
+import java.time.Instant;
 
 /**
- * Advances the operational simulation forward in time.
+ * Delay handling:
  *
- * The simulation engine mutates the live simulation state by
- * progressing shipments through their routes based on elapsed
- * simulated time.
- *
- * This engine represents operational truth and is kept separate
- * from predictive forecasting logic.
+ * - Active delays block shipment advancement
+ * - Simulation time always advances
+ * - Delay applicability is currently global
+ *   and will be refined in future iterations
  */
 public class SimulationEngine {
 
@@ -20,7 +20,32 @@ public class SimulationEngine {
         state.advanceTime(tickSize);
 
         for (Shipment shipment : state.getActiveShipments()) {
+            if (hasActiveDelay(state)) {
+                // Shipment is blocked by delay; time still advances
+                continue;
+            }
+
             shipment.advance(tickSize);
         }
+    }
+
+    /**
+     * Determines whether there is any active delay in the system.
+     */
+    private boolean hasActiveDelay(SimulationState state) {
+        Instant now = state.getCurrentTime();
+
+        for (DelayEvent delay : state.getDelayEvents()) {
+            if (!delayExpired(delay, now)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean delayExpired(DelayEvent delay, Instant now) {
+        return delay.getOccurredAt()
+                .plus(delay.getDuration())
+                .isBefore(now);
     }
 }
