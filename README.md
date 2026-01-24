@@ -62,28 +62,35 @@ It is intended to run as a backend service that feeds predictive ETAs into:
 
 ## Current Implementation Status
 
-TransitFlow currently implements the core domain model and simulation foundation required for accurate freight ETA prediction.
+TransitFlow currently implements a complete, end-to-end foundation for freight arrival and delivery prediction, spanning domain modeling, simulation, prediction, and API exposure.
 
 Implemented features include:
 - Domain-driven modeling of shipments, routes, segments, terminals, and transport modes
 - Multi-leg, multi-modal shipment routing (truck, rail, air, sea)
-- Deterministic, time-based simulation engine
-- Segment-level transit time enforcement (no premature advancement)
-- Terminal-specific delivery policies with inbound cut times and business calendars
-- Clean separation between operational state and delivery estimation logic
-- Comprehensive unit tests validating simulation time progression behavior
+- Deterministic, time-based simulation engine with strict segment completion semantics
+- Immutable prediction snapshots enabling safe, read-only forecasting
+- Prediction engine capable of computing terminal arrival times via simulated progression
+- Terminal-specific delivery policies with inbound cut-off times and business calendar awareness
+- Arrival estimate domain model separating terminal arrival from customer delivery time
+- Delivery estimation service applying policy logic to predicted arrivals
+- REST API exposing shipment arrival and delivery estimates via Spring Boot
+- In-memory shipment repository for API prototyping and development
+- End-to-end HTTP → JSON prediction flow validated via live API calls
+- Comprehensive unit tests covering simulation behavior, arrival prediction, and delivery policy enforcement
 
-At this stage, TransitFlow represents a stable and test-backed operational simulation core.
+At this stage, TransitFlow represents a stable, test-backed predictive simulation core with a working API surface suitable for iteration, experimentation, and external integration.
 
 ## Planned Next Steps
 
-Upcoming work will focus on expanding predictive capabilities and operational realism, including:
+Upcoming work will focus on expanding predictive realism and production readiness, including:
 - Delay event modeling (weather, congestion, intermodal dwell)
-- Read-only predictive forecasting engine (state cloning)
-- ETA confidence and risk scoring
+- Probabilistic ETA confidence and risk scoring
 - External signal integration (stubbed → real APIs)
-- REST API endpoints for shipment tracking and ETA retrieval
-- Metrics and observability enhancements
+- Persistence layer for shipments and historical predictions
+- Expanded REST API surface (batch queries, scenario forecasting)
+- Observability enhancements (metrics, logging, tracing)
+- Lightweight UI or client for interactive exploration of prediction behavior
+
 
 Development is intentionally iterative, with each feature implemented on isolated branches and merged only after validation.
 ---
