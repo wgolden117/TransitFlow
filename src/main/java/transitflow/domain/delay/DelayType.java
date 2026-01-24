@@ -1,4 +1,11 @@
-package main.java.transitflow.domain.delay;
+package transitflow.domain.delay;
 
-public class DelayType {
+public enum DelayType {
+
+    WEATHER,
+    CONGESTION,
+    TERMINAL_DWELL,
+    EQUIPMENT_FAILURE,
+    CREW_DELAY,
+    CUSTOM
 }

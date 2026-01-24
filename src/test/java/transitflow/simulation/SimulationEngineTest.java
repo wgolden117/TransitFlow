@@ -5,6 +5,9 @@ import transitflow.delivery.StandardDeliveryPolicy;
 import transitflow.domain.route.*;
 import transitflow.domain.shipment.Shipment;
 import transitflow.transport.truck.TruckTransport;
+import transitflow.domain.delay.DelayEvent;
+import transitflow.domain.delay.DelayType;
+
 
 import java.time.Duration;
 import java.time.Instant;
@@ -129,4 +132,110 @@ public class SimulationEngineTest {
                 List.of(shipment)
         );
     }
+    /**
+     * Verifies that an active delay prevents shipment advancement,
+     * even when sufficient simulated time passes.
+     */
+    @Test
+    void shipmentDoesNotAdvanceWhileDelayIsActive() {
+        // Arrange
+        Shipment shipment = createSingleSegmentShipment();
+        SimulationState state = createStateWithShipment(shipment);
+
+        state.addDelayEvent(new DelayEvent(
+                DelayType.WEATHER,
+                Duration.ofHours(6),
+                state.getCurrentTime(),
+                "GLOBAL",
+                "Severe winter storm"
+        ));
+
+        SimulationEngine engine = new SimulationEngine();
+
+        // Act
+        engine.tick(state, Duration.ofHours(6));
+
+        // Assert
+        assertEquals(0, shipment.getCurrentSegmentIndex());
+        assertTrue(shipment.hasMoreSegments());
+    }
+
+    /**
+     * Verifies that a shipment resumes advancement once the delay expires.
+     */
+    @Test
+    void shipmentAdvancesAfterDelayExpires() {
+        // Arrange
+        Shipment shipment = createSingleSegmentShipment();
+        SimulationState state = createStateWithShipment(shipment);
+
+        state.addDelayEvent(new DelayEvent(
+                DelayType.WEATHER,
+                Duration.ofHours(3),
+                state.getCurrentTime(),
+                "GLOBAL",
+                "Temporary storm"
+        ));
+
+        SimulationEngine engine = new SimulationEngine();
+
+        // Act
+        engine.tick(state, Duration.ofHours(3)); // delay active
+        engine.tick(state, Duration.ofHours(6)); // delay expired
+
+        // Assert
+        assertEquals(1, shipment.getCurrentSegmentIndex());
+        assertFalse(shipment.hasMoreSegments());
+    }
+
+    /**
+     * Verifies that simulation time advances even while shipment
+     * advancement is blocked by delay.
+     */
+    @Test
+    void timeAdvancesEvenWhenShipmentIsDelayed() {
+        // Arrange
+        Shipment shipment = createSingleSegmentShipment();
+        SimulationState state = createStateWithShipment(shipment);
+
+        Instant startTime = state.getCurrentTime();
+
+        state.addDelayEvent(new DelayEvent(
+                DelayType.CONGESTION,
+                Duration.ofHours(4),
+                startTime,
+                "GLOBAL",
+                "Network congestion"
+        ));
+
+        SimulationEngine engine = new SimulationEngine();
+
+        // Act
+        engine.tick(state, Duration.ofHours(2));
+
+        // Assert
+        assertEquals(startTime.plus(Duration.ofHours(2)), state.getCurrentTime());
+        assertEquals(0, shipment.getCurrentSegmentIndex());
+    }
+    /**
+     * Regression guard:
+     *
+     * Verifies that introducing delay logic does NOT affect normal
+     * shipment advancement when no delays are present.
+     */
+    @Test
+    void shipmentAdvancesNormallyWhenNoDelaysExist() {
+        // Arrange
+        Shipment shipment = createSingleSegmentShipment();
+        SimulationState state = createStateWithShipment(shipment);
+        SimulationEngine engine = new SimulationEngine();
+
+        // Act
+        engine.tick(state, Duration.ofHours(6)); // full transit time
+
+        // Assert
+        assertEquals(1, shipment.getCurrentSegmentIndex());
+        assertFalse(shipment.hasMoreSegments());
+    }
+
 }
