@@ -17,13 +17,19 @@ import java.time.Instant;
 @Component
 public class PredictionEngine {
 
-    private final SimulationEngine simulationEngine = new SimulationEngine();
-    private final DeliveryEstimateService deliveryService =
-            new DeliveryEstimateService();
+    private final SimulationEngine simulationEngine;
+    private final DeliveryEstimateService deliveryService;
+
+    public PredictionEngine(
+            SimulationEngine simulationEngine,
+            DeliveryEstimateService deliveryService
+    ) {
+        this.simulationEngine = simulationEngine;
+        this.deliveryService = deliveryService;
+    }
 
     /**
      * Runs a predictive simulation forward for the given horizon.
-     *
      * This method operates exclusively on prediction snapshots
      * and cannot mutate live simulation state.
      */
@@ -41,7 +47,6 @@ public class PredictionEngine {
 
     /**
      * Predicts arrival semantics (terminal arrival + customer delivery).
-     *
      * This is the primary API for UI and external consumers.
      */
     public ArrivalEstimate predictArrivalEstimate(

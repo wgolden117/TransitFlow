@@ -2,18 +2,19 @@ package transitflow.simulation;
 
 import transitflow.domain.delay.DelayEvent;
 import transitflow.domain.shipment.Shipment;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
 
 /**
  * Delay handling:
- *
  * - Active delays block shipment advancement
  * - Simulation time always advances
  * - Delay applicability is currently global
  *   and will be refined in future iterations
  */
+@Component
 public class SimulationEngine {
 
     public void tick(SimulationState state, Duration tickSize) {

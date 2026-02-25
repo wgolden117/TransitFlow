@@ -6,6 +6,8 @@ import transitflow.domain.route.*;
 import transitflow.domain.shipment.Shipment;
 import transitflow.simulation.SimulationState;
 import transitflow.transport.truck.TruckTransport;
+import transitflow.simulation.SimulationEngine;
+import transitflow.delivery.DeliveryEstimateService;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -36,7 +38,11 @@ class ArrivalEstimateTest {
         PredictionSnapshot snapshot =
                 PredictionSnapshotFactory.fromSimulationState(liveState);
 
-        PredictionEngine engine = new PredictionEngine();
+        SimulationEngine simulationEngine = new SimulationEngine();
+        DeliveryEstimateService deliveryService = new DeliveryEstimateService();
+
+        PredictionEngine engine =
+                new PredictionEngine(simulationEngine, deliveryService);
 
         Terminal destination = shipment.getFinalDestination();
 
