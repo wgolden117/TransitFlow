@@ -62,32 +62,44 @@ It is intended to run as a backend service that feeds predictive ETAs into:
 
 ## Current Implementation Status
 
-TransitFlow currently implements a complete, end-to-end foundation for freight arrival and delivery prediction, spanning domain modeling, simulation, prediction, and API exposure.
+TransitFlow currently implements a complete, end-to-end foundation for freight arrival and delivery prediction, spanning domain modeling, simulation, delay injection, and API exposure.
 
 Implemented features include:
+
 - Domain-driven modeling of shipments, routes, segments, terminals, and transport modes
 - Multi-leg, multi-modal shipment routing (truck, rail, air, sea)
 - Deterministic, time-based simulation engine with strict segment completion semantics
 - Immutable prediction snapshots enabling safe, read-only forecasting
+- Centralized delay coordination via `DelayCoordinator`
+- Scoped delay modeling (global, transport-mode, segment-level, terminal-level)
+- Weather delay integration via pluggable `WeatherClient`
+- Deterministic weather impact modeling with severity-based delay mapping
+- Idempotent delay injection preventing infinite stacking during simulation
+- Automatic delay expiration with verified shipment resumption behavior
 - Prediction engine capable of computing terminal arrival times via simulated progression
+- Verified behavioral impact of external disruption on ETA prediction
 - Terminal-specific delivery policies with inbound cut-off times and business calendar awareness
 - Arrival estimate domain model separating terminal arrival from customer delivery time
 - Delivery estimation service applying policy logic to predicted arrivals
 - REST API exposing shipment arrival and delivery estimates via Spring Boot
 - In-memory shipment repository for API prototyping and development
 - End-to-end HTTP → JSON prediction flow validated via live API calls
-- Comprehensive unit tests covering simulation behavior, arrival prediction, and delivery policy enforcement
+- Comprehensive unit tests covering simulation behavior, delay modeling, weather impact, arrival prediction, and delivery policy enforcement
 
-At this stage, TransitFlow represents a stable, test-backed predictive simulation core with a working API surface suitable for iteration, experimentation, and external integration.
+At this stage, TransitFlow represents a stable, test-backed predictive simulation core with deterministic delay modeling and externally-injected disruption support. The architecture now cleanly separates simulation, prediction, and external signal integration, making the system extensible for future real-world data sources.
 
 ## Planned Next Steps
 
 Upcoming work will focus on expanding predictive realism and production readiness, including:
-- Delay event modeling (weather, congestion, intermodal dwell)
-- Probabilistic ETA confidence and risk scoring
-- External signal integration (stubbed → real APIs)
-- Persistence layer for shipments and historical predictions
-- Expanded REST API surface (batch queries, scenario forecasting)
+
+- Extracting a `WeatherImpactModel` to separate delay calculation from weather data retrieval
+- Supporting probabilistic or range-based delay modeling per severity
+- Enabling rolling forecast updates during long prediction horizons
+- Aggregating multi-terminal weather impacts across full shipment routes
+- Introducing ETA confidence bands and risk-adjusted prediction outputs
+- Integrating a real weather API in place of the current stub client
+- Persistence layer for shipments, delays, and historical predictions
+- Expanded REST API surface (batch queries, scenario forecasting, disruption simulation)
 - Observability enhancements (metrics, logging, tracing)
 - Lightweight UI or client for interactive exploration of prediction behavior
 
