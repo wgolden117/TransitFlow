@@ -146,8 +146,10 @@ public class SimulationEngineTest {
                 DelayType.WEATHER,
                 Duration.ofHours(6),
                 state.getCurrentTime(),
-                "GLOBAL",
-                "Severe winter storm"
+                null,
+                "Severe winter storm",
+                null,
+                null
         ));
 
         SimulationEngine engine = new SimulationEngine();
@@ -171,10 +173,12 @@ public class SimulationEngineTest {
 
         state.addDelayEvent(new DelayEvent(
                 DelayType.WEATHER,
-                Duration.ofHours(3),
+                Duration.ofHours(6),
                 state.getCurrentTime(),
-                "GLOBAL",
-                "Temporary storm"
+                null,
+                "Temporary storm",
+                null,
+                null
         ));
 
         SimulationEngine engine = new SimulationEngine();
@@ -201,11 +205,13 @@ public class SimulationEngineTest {
         Instant startTime = state.getCurrentTime();
 
         state.addDelayEvent(new DelayEvent(
-                DelayType.CONGESTION,
-                Duration.ofHours(4),
-                startTime,
-                "GLOBAL",
-                "Network congestion"
+                DelayType.WEATHER,
+                Duration.ofHours(6),
+                state.getCurrentTime(),
+                null,
+                "Network Congestion",
+                null,
+                null
         ));
 
         SimulationEngine engine = new SimulationEngine();
@@ -238,4 +244,108 @@ public class SimulationEngineTest {
         assertFalse(shipment.hasMoreSegments());
     }
 
+    /**
+     * Verifies that a transport-mode-scoped delay blocks only shipments
+     * currently using the specified transport mode.
+     *
+     * <p>This ensures that targeted disruptions (e.g., truck strikes,
+     * rail shutdowns) correctly prevent advancement only for affected
+     * segments while leaving other modes unaffected.</p>
+     */
+    @Test
+    void shipmentBlockedByTransportModeDelay() {
+        // Arrange
+        Shipment shipment = createSingleSegmentShipment();
+        SimulationState state = createStateWithShipment(shipment);
+
+        state.addDelayEvent(new DelayEvent(
+                DelayType.WEATHER,
+                Duration.ofHours(6),
+                state.getCurrentTime(),
+                null,
+                "Truck strike",
+                shipment.getCurrentSegment().getTransportMode(),
+                null
+        ));
+
+        SimulationEngine engine = new SimulationEngine();
+
+        // Act
+        engine.tick(state, Duration.ofHours(6));
+
+        // Assert
+        assertEquals(0, shipment.getCurrentSegmentIndex());
+        assertTrue(shipment.hasMoreSegments());
+    }
+
+    /**
+     * Verifies that a delay scoped to a specific segment ID
+     * blocks advancement only for that exact route segment.
+     *
+     * <p>This guarantees that highly targeted disruptions
+     * (e.g., infrastructure failure on a specific leg)
+     * affect only the intended shipment segment.</p>
+     */
+    @Test
+    void shipmentBlockedBySpecificSegmentDelay() {
+        // Arrange
+        Shipment shipment = createSingleSegmentShipment();
+        SimulationState state = createStateWithShipment(shipment);
+
+        var segmentId = shipment.getCurrentSegment().getId();
+
+        state.addDelayEvent(new DelayEvent(
+                DelayType.CONGESTION,
+                Duration.ofHours(6),
+                state.getCurrentTime(),
+                null,
+                "Segment bottleneck",
+                null,
+                segmentId
+        ));
+
+        SimulationEngine engine = new SimulationEngine();
+
+        // Act
+        engine.tick(state, Duration.ofHours(6));
+
+        // Assert
+        assertEquals(0, shipment.getCurrentSegmentIndex());
+    }
+
+    /**
+     * Verifies that a location-scoped delay blocks shipments
+     * whose current segment is destined for the affected terminal.
+     *
+     * <p>This models terminal-level disruptions such as shutdowns,
+     * weather closures, or operational bottlenecks at a specific
+     * facility.</p>
+     */
+    @Test
+    void shipmentBlockedByLocationDelay() {
+        // Arrange
+        Shipment shipment = createSingleSegmentShipment();
+        SimulationState state = createStateWithShipment(shipment);
+
+        String locationCode =
+                shipment.getCurrentSegment().getDestination().getCode();
+
+        state.addDelayEvent(new DelayEvent(
+                DelayType.WEATHER,
+                Duration.ofHours(6),
+                state.getCurrentTime(),
+                locationCode,
+                "Terminal shutdown",
+                null,
+                null
+        ));
+
+        SimulationEngine engine = new SimulationEngine();
+
+        // Act
+        engine.tick(state, Duration.ofHours(6));
+
+        // Assert
+        assertEquals(0, shipment.getCurrentSegmentIndex());
+    }
 }

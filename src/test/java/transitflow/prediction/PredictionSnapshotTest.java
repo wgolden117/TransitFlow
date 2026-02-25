@@ -39,8 +39,10 @@ class PredictionSnapshotTest {
                 DelayType.WEATHER,
                 Duration.ofHours(4),
                 liveState.getCurrentTime(),
-                "GLOBAL",
-                "Winter storm"
+                null,
+                "Winter storm",
+                null,
+                null
         ));
 
         // Create snapshot

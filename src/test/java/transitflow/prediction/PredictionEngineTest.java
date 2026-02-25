@@ -38,8 +38,10 @@ class PredictionEngineTest {
                 DelayType.WEATHER,
                 Duration.ofHours(3),
                 liveState.getCurrentTime(),
-                "GLOBAL",
-                "Snowstorm"
+                null,                 // locationId
+                "Snowstorm",
+                null,                 // transportMode
+                null                  // segmentId
         ));
 
         PredictionSnapshot snapshot =

@@ -21,8 +21,7 @@ public class SimulationEngine {
         state.advanceTime(tickSize);
 
         for (Shipment shipment : state.getActiveShipments()) {
-            if (hasActiveDelay(state)) {
-                // Shipment is blocked by delay; time still advances
+            if (isShipmentBlockedByDelay(state, shipment)) {
                 continue;
             }
 
@@ -30,23 +29,60 @@ public class SimulationEngine {
         }
     }
 
-    /**
-     * Determines whether there is any active delay in the system.
-     */
-    private boolean hasActiveDelay(SimulationState state) {
-        Instant now = state.getCurrentTime();
-
-        for (DelayEvent delay : state.getDelayEvents()) {
-            if (!delayExpired(delay, now)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean delayExpired(DelayEvent delay, Instant now) {
         return delay.getOccurredAt()
                 .plus(delay.getDuration())
                 .isBefore(now);
+    }
+
+    private boolean isShipmentBlockedByDelay(
+            SimulationState state,
+            Shipment shipment
+    ) {
+        Instant now = state.getCurrentTime();
+
+        if (!shipment.hasMoreSegments()) {
+            return false;
+        }
+
+        var currentSegment = shipment.getCurrentSegment();
+
+        for (DelayEvent delay : state.getDelayEvents()) {
+
+            if (delayExpired(delay, now)) {
+                continue;
+            }
+
+            // GLOBAL delay
+            if (delay.getTransportMode().isEmpty()
+                    && delay.getSegmentId().isEmpty()
+                    && delay.getLocationId().isEmpty()) {
+                return true;
+            }
+
+            // Transport mode scoped delay
+            if (delay.getTransportMode().isPresent()
+                    && currentSegment.getTransportMode()
+                    .equals(delay.getTransportMode().get())) {
+                return true;
+            }
+
+            // Segment scoped delay
+            if (delay.getSegmentId().isPresent()
+                    && currentSegment.getId()
+                    .equals(delay.getSegmentId().get())) {
+                return true;
+            }
+
+            // Location scoped delay
+            if (delay.getLocationId().isPresent()
+                    && currentSegment.getDestination()
+                    .getCode()
+                    .equals(delay.getLocationId().get())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
