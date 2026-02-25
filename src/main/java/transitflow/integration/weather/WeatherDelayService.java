@@ -1,5 +1,6 @@
 package transitflow.integration.weather;
 
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 import transitflow.domain.delay.DelayEvent;
 import transitflow.domain.delay.DelayType;
@@ -22,23 +23,38 @@ public class WeatherDelayService {
             Terminal terminal
     ) {
 
-        WeatherForecast forecast = weatherClient.getForecast(terminal);
-
-        WeatherSeverity severity = forecast.getSeverity();
+        var forecast = weatherClient.getForecast(terminal);
+        var severity = forecast.getSeverity();
 
         Duration delayDuration = mapSeverityToDelay(severity);
 
-        if (!delayDuration.isZero()) {
-            state.addDelayEvent(new DelayEvent(
-                    DelayType.WEATHER,
-                    delayDuration,
-                    state.getCurrentTime(),
-                    terminal.getCode(),
-                    "Weather disruption",
-                    null,
-                    null
-            ));
+        if (delayDuration.isZero()) {
+            return;
         }
+
+        // 🔥 NEW: Prevent duplicate active weather delays
+        boolean alreadyHasActiveWeatherDelay =
+                state.getDelayEvents().stream()
+                        .filter(delay -> delay.getType() == DelayType.WEATHER)
+                        .filter(delay -> delay.getLocationId().isPresent())
+                        .anyMatch(delay ->
+                                delay.getLocationId().get().equals(terminal.getCode())
+                                        && !isExpired(delay, state.getCurrentTime())
+                        );
+
+        if (alreadyHasActiveWeatherDelay) {
+            return;
+        }
+
+        state.addDelayEvent(new DelayEvent(
+                DelayType.WEATHER,
+                delayDuration,
+                state.getCurrentTime(),
+                terminal.getCode(),
+                "Weather disruption",
+                null,
+                null
+        ));
     }
 
     private Duration mapSeverityToDelay(WeatherSeverity severity) {
@@ -48,5 +64,11 @@ public class WeatherDelayService {
             case HIGH -> Duration.ofHours(4);
             case EXTREME -> Duration.ofHours(8);
         };
+    }
+
+    private boolean isExpired(DelayEvent delay, Instant now) {
+        return delay.getOccurredAt()
+                .plus(delay.getDuration())
+                .isBefore(now);
     }
 }
