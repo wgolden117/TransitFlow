@@ -6,10 +6,10 @@ import transitflow.domain.delay.DelayType;
 import transitflow.domain.route.*;
 import transitflow.domain.shipment.Shipment;
 import transitflow.delivery.StandardDeliveryPolicy;
-import transitflow.simulation.SimulationState;
+import transitflow.simulation.*;
 import transitflow.transport.truck.TruckTransport;
-import transitflow.simulation.SimulationEngine;
 import transitflow.delivery.DeliveryEstimateService;
+import transitflow.integration.weather.WeatherDelayService;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -22,13 +22,18 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Verifies that PredictionEngine operates exclusively on
  * prediction snapshots and does not mutate live simulation state.
+ *
+ * <p>This ensures prediction remains fully isolated from
+ * operational truth, even when delays exist.</p>
  */
 class PredictionEngineTest {
 
     @Test
     void predictionEngineDoesNotMutateSimulationState() {
+
         // Arrange: live simulation
         Shipment liveShipment = createSingleSegmentShipment();
+
         SimulationState liveState = new SimulationState(
                 Instant.parse("2026-01-01T00:00:00Z"),
                 List.of(liveShipment)
@@ -38,10 +43,10 @@ class PredictionEngineTest {
                 DelayType.WEATHER,
                 Duration.ofHours(3),
                 liveState.getCurrentTime(),
-                null,                 // locationId
+                null,
                 "Snowstorm",
-                null,                 // transportMode
-                null                  // segmentId
+                null,
+                null
         ));
 
         PredictionSnapshot snapshot =
@@ -50,8 +55,27 @@ class PredictionEngineTest {
         SimulationEngine simulationEngine = new SimulationEngine();
         DeliveryEstimateService deliveryService = new DeliveryEstimateService();
 
+        // No-op weather service to avoid injecting additional delays
+        WeatherDelayService noOpWeatherService =
+                new WeatherDelayService(null) {
+                    @Override
+                    public void applyWeatherDelays(
+                            SimulationState state,
+                            Terminal terminal
+                    ) {
+                        // intentionally no-op
+                    }
+                };
+
+        DelayCoordinator coordinator =
+                new DelayCoordinator(noOpWeatherService);
+
         PredictionEngine engine =
-                new PredictionEngine(simulationEngine, deliveryService);
+                new PredictionEngine(
+                        simulationEngine,
+                        deliveryService,
+                        coordinator
+                );
 
         // Act: run prediction
         engine.predict(snapshot, Duration.ofHours(6));
@@ -66,6 +90,7 @@ class PredictionEngineTest {
        ------------------------------------------------------------------ */
 
     private Shipment createSingleSegmentShipment() {
+
         Terminal origin = new Terminal(
                 "CHI",
                 "Chicago",
@@ -91,6 +116,7 @@ class PredictionEngineTest {
         );
 
         Route route = new Route(origin, destination, List.of(segment));
+
         return new Shipment("TRACK123", route);
     }
 }

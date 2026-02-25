@@ -3,6 +3,7 @@ package transitflow.prediction;
 import transitflow.delivery.DeliveryEstimateService;
 import transitflow.domain.route.Terminal;
 import transitflow.domain.shipment.Shipment;
+import transitflow.simulation.DelayCoordinator;
 import transitflow.simulation.SimulationEngine;
 import transitflow.simulation.SimulationState;
 import org.springframework.stereotype.Component;
@@ -19,13 +20,16 @@ public class PredictionEngine {
 
     private final SimulationEngine simulationEngine;
     private final DeliveryEstimateService deliveryService;
+    private final DelayCoordinator delayCoordinator;
 
     public PredictionEngine(
             SimulationEngine simulationEngine,
-            DeliveryEstimateService deliveryService
+            DeliveryEstimateService deliveryService,
+            DelayCoordinator delayCoordinator
     ) {
         this.simulationEngine = simulationEngine;
         this.deliveryService = deliveryService;
+        this.delayCoordinator = delayCoordinator;
     }
 
     /**
@@ -40,6 +44,9 @@ public class PredictionEngine {
                 snapshot.getShipments()
         );
 
+        // Apply external delays before advancing
+        delayCoordinator.applyExternalDelays(predictedState);
+
         simulationEngine.tick(predictedState, horizon);
 
         return PredictionResult.from(predictedState);
@@ -53,6 +60,7 @@ public class PredictionEngine {
             PredictionSnapshot snapshot,
             Terminal destination
     ) {
+
         SimulationState state = new SimulationState(
                 snapshot.getSnapshotTime(),
                 snapshot.getShipments()
@@ -61,10 +69,15 @@ public class PredictionEngine {
         // Advance simulation until all shipments complete
         while (state.getActiveShipments().stream()
                 .anyMatch(Shipment::hasMoreSegments)) {
+
+            // Apply external delays at each step
+            delayCoordinator.applyExternalDelays(state);
+
             simulationEngine.tick(state, Duration.ofHours(1));
         }
 
         Instant terminalArrival = state.getCurrentTime();
+
         Instant customerDelivery =
                 deliveryService.estimateDeliveryTime(
                         terminalArrival,

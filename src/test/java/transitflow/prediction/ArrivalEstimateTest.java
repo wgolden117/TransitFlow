@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 import transitflow.delivery.StandardDeliveryPolicy;
 import transitflow.domain.route.*;
 import transitflow.domain.shipment.Shipment;
-import transitflow.simulation.SimulationState;
+import transitflow.simulation.*;
 import transitflow.transport.truck.TruckTransport;
-import transitflow.simulation.SimulationEngine;
 import transitflow.delivery.DeliveryEstimateService;
+import transitflow.integration.weather.WeatherDelayService;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -22,11 +22,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * - Terminal arrival time is predicted correctly
  * - Customer delivery time is derived via delivery policy
+ *
+ * <p>This test operates without external delays to
+ * validate baseline simulation correctness.</p>
  */
 class ArrivalEstimateTest {
 
     @Test
     void predictsTerminalArrivalAndCustomerDelivery() {
+
         // Arrange
         Shipment shipment = createSingleSegmentShipment();
 
@@ -41,8 +45,27 @@ class ArrivalEstimateTest {
         SimulationEngine simulationEngine = new SimulationEngine();
         DeliveryEstimateService deliveryService = new DeliveryEstimateService();
 
+        // Stub WeatherDelayService that injects NO delays
+        WeatherDelayService noOpWeatherService =
+                new WeatherDelayService(null) {
+                    @Override
+                    public void applyWeatherDelays(
+                            SimulationState state,
+                            Terminal terminal
+                    ) {
+                        // intentionally no-op
+                    }
+                };
+
+        DelayCoordinator coordinator =
+                new DelayCoordinator(noOpWeatherService);
+
         PredictionEngine engine =
-                new PredictionEngine(simulationEngine, deliveryService);
+                new PredictionEngine(
+                        simulationEngine,
+                        deliveryService,
+                        coordinator
+                );
 
         Terminal destination = shipment.getFinalDestination();
 
@@ -69,6 +92,7 @@ class ArrivalEstimateTest {
        --------------------------------------------------------- */
 
     private Shipment createSingleSegmentShipment() {
+
         Terminal origin = new Terminal(
                 "CHI",
                 "Chicago",
