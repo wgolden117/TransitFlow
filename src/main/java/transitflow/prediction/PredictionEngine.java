@@ -5,6 +5,7 @@ import transitflow.domain.route.Terminal;
 import transitflow.domain.shipment.Shipment;
 import transitflow.simulation.SimulationEngine;
 import transitflow.simulation.SimulationState;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,6 +14,7 @@ import java.time.Instant;
  * Executes read-only predictive simulations based on
  * immutable prediction snapshots.
  */
+@Component
 public class PredictionEngine {
 
     private final SimulationEngine simulationEngine = new SimulationEngine();

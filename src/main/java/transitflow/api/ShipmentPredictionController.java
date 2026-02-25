@@ -15,11 +15,15 @@ import java.util.List;
 @RequestMapping("/api/shipments")
 public class ShipmentPredictionController {
 
-    private final PredictionEngine predictionEngine = new PredictionEngine();
+    private final PredictionEngine predictionEngine;
     private final InMemoryShipmentRepository shipmentRepository;
 
-    public ShipmentPredictionController(InMemoryShipmentRepository shipmentRepository) {
+    public ShipmentPredictionController(
+            InMemoryShipmentRepository shipmentRepository,
+            PredictionEngine predictionEngine
+    ) {
         this.shipmentRepository = shipmentRepository;
+        this.predictionEngine = predictionEngine;
     }
 
     @GetMapping("/{trackingId}/arrival-estimate")
