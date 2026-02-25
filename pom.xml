@@ -29,7 +29,13 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Testing (JUnit 5 included automatically) -->
+        <!-- Web / REST -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -37,6 +43,7 @@
         </dependency>
 
     </dependencies>
+
 
     <build>
         <plugins>

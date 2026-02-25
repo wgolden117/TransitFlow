@@ -92,6 +92,10 @@ public class Shipment {
         return currentSegmentIndex;
     }
 
+    public String getTrackingNumber() {
+        return trackingNumber;
+    }
+
     public ShipmentStatus getStatus() {
         return status;
     }
