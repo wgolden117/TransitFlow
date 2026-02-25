@@ -1,4 +1,8 @@
-package main.java.transitflow.integration.weather;
+package transitflow.integration.weather;
 
-public class WeatherSeverity {
+public enum WeatherSeverity {
+    LOW,
+    MODERATE,
+    HIGH,
+    EXTREME
 }

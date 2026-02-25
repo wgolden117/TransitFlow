@@ -1,4 +1,9 @@
-package main.java.transitflow.integration.weather;
+package transitflow.integration.weather;
+
+import transitflow.domain.route.Terminal;
 
 public interface WeatherClient {
+
+    WeatherForecast getForecast(Terminal terminal);
+
 }
