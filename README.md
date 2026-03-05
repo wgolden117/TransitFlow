@@ -60,6 +60,57 @@ It is intended to run as a backend service that feeds predictive ETAs into:
 
 ---
 
+## Cloud Deployment (Azure)
+
+TransitFlow is deployed as a live cloud service using **Microsoft Azure App Service**.
+
+The service runs as a Spring Boot application hosted on Azure App Service and exposes a public REST API for shipment ETA prediction.
+
+The application is packaged as an executable Spring Boot JAR via Maven and deployed using the Azure CLI. This enables the prediction API to be accessed publicly over HTTP.
+
+### Build the application
+
+```bash
+mvn package
+```
+
+### Deploy to Azure
+
+```bash
+az webapp deploy \
+  --resource-group transitflow-rg \
+  --name transitflow-api \
+  --src-path target/transitflow-0.0.1-SNAPSHOT.jar \
+  --type jar
+```
+
+## Public API Endpoint
+https://transitflow-api-b0ekfrdvcgbtfgf9.eastus-01.azurewebsites.net
+
+### Example Endpoints
+
+Health check:
+
+ - GET /
+ - Example response: TransitFlow API running in Azure
+
+Shipment arrival estimate:
+ - GET /api/shipments/{trackingId}/arrival-estimate
+
+Example:
+
+ - /api/shipments/TRACK123/arrival-estimate
+
+Example response:
+```json
+{
+"trackingId": "TRACK123",
+"terminalArrival": "2026-03-06T06:55:35Z",
+"customerDelivery": "2026-03-06T06:55:35Z"
+}
+```
+This endpoint executes the TransitFlow prediction engine and returns both the operational terminal arrival estimate and the customer-facing delivery estimate.
+
 ## Current Implementation Status
 
 TransitFlow currently implements a complete, end-to-end foundation for freight arrival and delivery prediction, spanning domain modeling, simulation, delay injection, and API exposure.
@@ -82,6 +133,7 @@ Implemented features include:
 - Arrival estimate domain model separating terminal arrival from customer delivery time
 - Delivery estimation service applying policy logic to predicted arrivals
 - REST API exposing shipment arrival and delivery estimates via Spring Boot
+- Cloud deployment via Azure App Service enabling public API access
 - In-memory shipment repository for API prototyping and development
 - End-to-end HTTP → JSON prediction flow validated via live API calls
 - Comprehensive unit tests covering simulation behavior, delay modeling, weather impact, arrival prediction, and delivery policy enforcement
